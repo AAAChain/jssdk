@@ -1,7 +1,7 @@
 {
-  "name": "eosjs",
-  "version": "16.0.8",
-  "description": "General purpose library for the EOS blockchain.",
+  "name": "aaajs",
+  "version": "1.0.1",
+  "description": "General purpose library for the AAA blockchain.",
   "main": "lib/index.js",
   "files": [
     "README.md",
@@ -14,7 +14,7 @@
     "coverage": "nyc --reporter=html npm test",
     "coveralls": "npm run coverage && cat ./coverage/lcov.info | ./node_modules/.bin/coveralls",
     "build": "rm -fr lib && npm run build_lib && npm run build_browser",
-    "build_lib": "babel --copy-files src --out-dir lib",
+    "build_lib": "./node_modules/.bin/babel --copy-files src --out-dir lib",
     "build_browser": "browserify -o lib/eos.js -s Eos lib/index.js",
     "build_browser_test": "browserify -o dist/test.js lib/*.test.js",
     "minimize": "uglifyjs lib/eos.js -o lib/eos.min.js --source-map --compress --mangle",

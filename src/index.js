@@ -16,6 +16,7 @@ const eosio_null = require('./schema/eosio.null.abi.json')
 const Eos = (config = {}) => {
   const configDefaults = {
     httpEndpoint: 'http://127.0.0.1:8888',
+    paymentUser: 'aaatrust1111',
     debug: false,
     verbose: false,
     broadcast: true,
@@ -70,6 +71,104 @@ Object.assign(
   }
 )
 
+// 这个函数的功能：授权合约从买家帐号扣款。
+//
+// 参数说明：
+// buyer: 买家账号
+//
+// 注：
+// 1. 调用函数payForGood前，必须先进行授权。
+// 2. 授权信息记录在链上，对于同一个买家来说，这个函数只需要调用一次。
+async function authPermisson(buyer) {
+  let accountInfo = await this.getAccount(buyer);
+  let activeAuth = {};
+  let needAddPermission = true;
+  for (let perm of accountInfo.permissions) {
+    // Example of accountInfo.permissions:
+    //   "permissions": [
+    //     {
+    //         "perm_name": "active",
+    //         "parent": "owner",
+    //         "required_auth": {
+    //             "threshold": 1,
+    //             "keys": [
+    //                 {
+    //                     "key": "XXX",
+    //                     "weight": 1
+    //                 }
+    //             ],
+    //             "accounts": [
+    //                 {
+    //                     "permission": {
+    //                         "actor": "aaatrust1111",
+    //                         "permission": "eosio.code"
+    //                     },
+    //                     "weight": 1
+    //                 }
+    //             ],
+    //             "waits": []
+    //         }
+    //     },
+    if (perm.perm_name === "active") {
+      activeAuth = perm.required_auth;
+      let accounts = activeAuth.accounts;
+      for (let account of accounts) {
+        if (account.permission.actor === this.config.paymentUser &&
+            account.permission.permission === "eosio.code") {
+          // already add this permission, don't need add it again.
+          needAddPermission = false;
+          throw "the permission already existing, do nothing."
+        }
+      }
+
+      if (needAddPermission === true) {
+        accounts.push(
+          {permission: {actor: this.config.paymentUser,
+                        permission: "eosio.code"},
+           weight: 1}
+        );
+      }
+    }
+  }
+
+  let op_data = {
+    account: buyer,
+    permission: 'active',
+    parent: 'owner',
+    auth: activeAuth
+  };
+
+  return this.updateauth(op_data)
+}
+
+// 这个函数的功能为：买家预付款。
+//
+// 参数说明：
+// id: 用于唯一标识这笔预付款，它的类型必须为uint64，且不能重复
+// buyer: 买家账号，必须是链上存在的用户
+// seller: 卖家账号，必须是链上存在的用户
+// price: 商品价格，比如 "3.0000 EOS"
+//
+// 注：
+// 1. 它不会直接打钱给卖家，而是暂时打款到中间帐号，当买家确定收到商品后，
+// 应该调用 confirmPayment 来确认付款。
+// 2. 调用本函数前，请确保已授权合约从buyer扣款；如果没有，请调用authPermisson
+async function payForGood(id, buyer, seller, price) {
+  const options = { authorization: [ `${buyer}@active` ] };
+  let contract = await this.contract(this.config.paymentUser);
+  return contract.prepay(id, buyer, seller, price, options);
+}
+
+// 这个函数的功能为：买家确认付款，预付款时的钱将打到卖家帐号。
+//
+// 参数说明：
+// id: 预付款id
+async function confirmPayment(buyer, id) {
+  const options = { authorization: [ `${buyer}@active` ] };
+  let contract = await this.contract(this.config.paymentUser);
+  return contract.confirm(id, options);
+}
+
 function createEos(config) {
   const network = config.httpEndpoint != null ? EosApi(config) : null
   config.network = network
@@ -107,6 +206,9 @@ function createEos(config) {
       toBuffer,
       abiCache
     },
+    authPermisson: authPermisson,
+    payForGood: payForGood,
+    confirmPayment: confirmPayment,
     // Repeat of static Eos.modules, help apps that use dependency injection
     modules: {
       format
@@ -127,7 +229,7 @@ function createEos(config) {
 */
 function safeConfig(config) {
   // access control is shallow references only
-  const readOnly = new Set(['httpEndpoint', 'abiCache', 'chainId', 'expireInSeconds'])
+  const readOnly = new Set(['httpEndpoint', 'abiCache', 'chainId', 'expireInSeconds', 'paymentUser'])
   const readWrite = new Set(['verbose', 'debug', 'broadcast', 'logger', 'sign'])
   const protectedConfig = {}
 
