@@ -15,8 +15,9 @@ AAA = require('aaajs')
 
 config = {
   keyProvider: ['yourPrivateKey'], // WIF string or array of keys..
-  chainId: '038f4b0fc8ff18a4f0842a8f0564611f6e96e8535901dd45e43ac8691a1c4dca',
-  httpEndpoint: 'http://jungle.cryptolions.io:18888',  // 目前在eos测试网上，以后会迁移到AAA链上
+  keyPrefix: 'AAA',
+  chainId: '1c6ae7719a2a3b4ecb19584a30ff510ba1b6ded86e1fd8b8fc22f1179c622a32',
+  httpEndpoint: 'http://47.98.107.96:10180',
   expireInSeconds: 60
 }
 
@@ -24,7 +25,7 @@ aaa = AAA(config)
 
 const buyer = 'buyer1';    // 请修改为链上真实存在的账号名
 const seller = 'seller1';    // 请修改为链上真实存在的账号名
-const price = '2.0000 EOS'
+const price = '2.0000 AAA'
 const id = Math.floor(Math.random() * Math.floor(Number.MAX_SAFE_INTEGER)); // 随机Id
 
 // 授权合约从买家帐号扣款（仅需授权一次）

@@ -16,6 +16,7 @@ const eosio_null = require('./schema/eosio.null.abi.json')
 const Eos = (config = {}) => {
   const configDefaults = {
     httpEndpoint: 'http://127.0.0.1:8888',
+    keyPrefix: 'AAA',
     paymentUser: 'aaatrust1111',
     debug: false,
     verbose: false,
@@ -319,7 +320,7 @@ const defaultSignProvider = (eos, config) => async function({
       return {private: ecc.PrivateKey(key).toString()}
     } catch(e) {
       // normalize format (EOSKey => PUB_K1_base58publicKey)
-      return {public: ecc.PublicKey(key).toString()}
+      return {public: ecc.PublicKey(key, config.keyPrefix).toString(config.keyPrefix)}
     }
     assert(false, 'expecting public or private keys from keyProvider')
   })
@@ -351,7 +352,7 @@ const defaultSignProvider = (eos, config) => async function({
     const isPublic = key.public != null
 
     if(isPrivate) {
-      keyMap.set(ecc.privateToPublic(key.private), key.private)
+      keyMap.set(ecc.privateToPublic(key.private, config.keyPrefix), key.private)
     } else {
       keyMap.set(key.public, null)
     }
@@ -368,7 +369,7 @@ const defaultSignProvider = (eos, config) => async function({
 
     for(let requiredKey of required_keys) {
       // normalize (EOSKey.. => PUB_K1_Key..)
-      requiredKey = ecc.PublicKey(requiredKey).toString()
+      requiredKey = ecc.PublicKey(requiredKey, config.keyPrefix).toString(config.keyPrefix)
 
       const wif = keyMap.get(requiredKey)
       if(wif) {
