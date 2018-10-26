@@ -80,7 +80,7 @@ Object.assign(
 // 注：
 // 1. 调用函数payForGood前，必须先进行授权。
 // 2. 授权信息记录在链上，对于同一个买家来说，这个函数只需要调用一次。
-async function authPermisson(buyer) {
+async function authPermission(buyer) {
   let accountInfo = await this.getAccount(buyer);
   let activeAuth = {};
   let needAddPermission = true;
@@ -153,7 +153,7 @@ async function authPermisson(buyer) {
 // 注：
 // 1. 它不会直接打钱给卖家，而是暂时打款到中间帐号，当买家确定收到商品后，
 // 应该调用 confirmPayment 来确认付款。
-// 2. 调用本函数前，请确保已授权合约从buyer扣款；如果没有，请调用authPermisson
+// 2. 调用本函数前，请确保已授权合约从buyer扣款；如果没有，请调用authPermission
 async function payForGood(id, buyer, seller, price) {
   const options = { authorization: [ `${buyer}@active` ] };
   let contract = await this.contract(this.config.paymentUser);
@@ -207,7 +207,7 @@ function createEos(config) {
       toBuffer,
       abiCache
     },
-    authPermisson: authPermisson,
+    authPermission: authPermission,
     payForGood: payForGood,
     confirmPayment: confirmPayment,
     // Repeat of static Eos.modules, help apps that use dependency injection

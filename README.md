@@ -29,9 +29,9 @@ const price = '2.0000 AAA'
 const id = Math.floor(Math.random() * Math.floor(Number.MAX_SAFE_INTEGER)); // 随机Id
 
 // 授权合约从买家帐号扣款（仅需授权一次）
-aaa.authPermisson(buyer).
-  then(value => {console.log('authPermisson OK. txid: ' + value.transaction_id)}).
-  catch(e => {console.log("authPermisson failed: " + e)});
+aaa.authPermission(buyer).
+  then(value => {console.log('authPermission OK. txid: ' + value.transaction_id)}).
+  catch(e => {console.log("authPermission failed: " + e)});
 
 // 买家预付款
 aaa.payForGood(id, buyer, seller, price).
