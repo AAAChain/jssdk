@@ -2,7 +2,7 @@
 
 General purpose library for AAA blockchains.
 
-注：aaajs这个库fork自eosjs，并在其基础上增加了三个函数以提供一个支付系统。
+注：aaajs这个库fork自 [eosjs](https://github.com/EOSIO/eosjs/tree/v16.0.9) ，并在其基础上增加了三个函数以提供一个支付系统。
 
 ### Usage
 
